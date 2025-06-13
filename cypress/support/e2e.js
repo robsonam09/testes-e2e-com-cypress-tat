@@ -14,6 +14,10 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
+import 'cypress-iframe'
+
+import 'cypress-mailosaur' //importar o mailosaur
+
 import './commands'
 
 // Alternatively you can use CommonJS syntax:

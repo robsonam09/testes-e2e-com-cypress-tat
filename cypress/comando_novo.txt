@@ -1,0 +1,59 @@
+comando novo
+
+import { faker } from '@faker-js/faker/locale/en' //importando o faker somente o locale/en definindo somente uma língua de tudo que o faker tem disponível
+
+describe('CRUD', () => {
+  it('CRUDs a note', () => {
+    const noteDescription = faker.lorem.words(4) //variável para armazenar 4 palavras aleatórias do módulo loren
+    //Gera uma string aleatória com 4 palavras para ser o conteúdo da nota.
+    let attachFile = false
+
+
+    cy.intercept('GET', '**/notes').as('getNotes')
+    cy.intercept('GET', '**/notes/**').as('getNote')
+    //Intercepta as requisições da API para poder esperar elas depois (cy.wait(...)).
+    cy.sessionLogin() //Faz login usando o comando customizado que reutiliza a sessão
+
+    cy.visit('/notes/new')
+    cy.get('#content').type(noteDescription)
+
+    if (attachFile) {
+      cy.get('#file').selectFile('cypress/fixtures/example.json')
+    }
+
+    cy.contains('button', 'Create').click()
+    //Vai para a página de criar nota, digita o texto e clica em "Create".
+    cy.wait('@getNotes')
+
+    cy.contains('.list-group-item', noteDescription).should('be.visible').click()
+    //Espera as notas carregarem, verifica se a nova nota aparece na lista e clica nela.
+    cy.wait('@getNote')
+
+    const updatedNoteDescription = faker.lorem.words(4)
+    //Cria um novo conteúdo aleatório com 4 palavras para atualizar a nota.
+
+    cy.get('#content').as('contentField').clear() //Encontra novamente o campo #content, dá a ele um apelido @contentField, e o limpa (remove o texto antigo).
+
+    attachFile = true
+
+    if (attachFile) {
+      cy.get('#file').selectFile('cypress/fixtures/example.json')
+    }
+
+    cy.get('@contentField').type(updatedNoteDescription) //Usa o apelido para digitar o novo conteúdo no campo.
+    cy.contains('button', 'Save').click()
+    cy.wait('@getNotes')
+    //Gera um novo texto, limpa o campo da nota, digita o novo conteúdo e clica em "Save". Depois espera as notas atualizarem.
+    cy.contains('.list-group-item', noteDescription).should('not.exist')
+    //Garante que a nota com o conteúdo antigo não aparece mais na lista.
+
+    cy.contains('.list-group-item', updatedNoteDescription).should('be.visible').click()
+    cy.wait('@getNote')
+    cy.contains('button', 'Delete').click()
+    cy.wait('@getNotes')
+
+    cy.get('.list-group-item').its('length').should('be.at.least', 1) //Garante que ainda existe pelo menos uma nota na lista (ou seja, o sistema não ficou vazio).
+    cy.contains('.list-group-item', updatedNoteDescription).should('not.exist')
+    //Verifica que a nota atualizada e depois deletada não aparece mais na lista.
+  })
+})

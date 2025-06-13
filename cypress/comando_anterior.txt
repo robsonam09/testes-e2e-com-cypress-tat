@@ -1,0 +1,47 @@
+Salvar comando de teste para não perder o original
+
+
+//script de sign up anterior, antes de retirar após criar um comando
+//biblioteca para gerar um e-mail temporário e blibioteca pra instalar o mailosaur npm install cypress-mailosaur@2.13.0 @faker-js/faker@8.0.2 --save-dev
+import { faker } from '@faker-js/faker/locale/en'
+
+//describe - titulo do teste
+//it - bloco de teste
+describe('Sign up', () => {
+  it('successfully signs up using confirmation code sent via email', () => {
+    const emailAddress = `${faker.datatype.uuid()}@${Cypress.env('MAILOSAUR_SERVER_ID')}.mailosaur.net` //variável emailaddress que gera um nome aleatorio e o maliosaur captura
+    const password = Cypress.env('USER_PASSWORD') //buscando do cypress.env e armazenando na variável
+
+    cy.intercept('GET', '**/notes').as('getNotes') //interceptar requisições que acabam com /NOTES e usa como apelido @getNotes
+    cy.visit('/signup') //Visitar a página de signup
+    cy.get('#email').type(emailAddress) //e-mail definido na variável da linha 5
+    cy.get('#password').type(password, { log: false }) //password definido na variável da linha 6 - log:false devido a dado sensível
+    cy.get('#confirmPassword').type(password, { log: false }) //password definido na variável da linha 6 - log:false devido a dado sensível
+    cy.contains('button', 'Signup').click() //verifica na página se contém um botão e clica
+    cy.get('#confirmationCode').should('be.visible')
+
+    cy.mailosaurGetMessage(Cypress.env('MAILOSAUR_SERVER_ID'), { //recebe como argumento o e-mail aleatório
+      sentTo: emailAddress //enviar para p e-mail que foi gerado de forma aleatória no script acima
+    }).then(message => { //buscar a mensagem que foi enviada para este e-mail aleatório
+      const confirmationCode = message.html.body.match(/\d{6}/)[0] //variável confirmationCode para a expressão e para identificar somente os dígitos
+      cy.get('#confirmationCode').type(`${confirmationCode}{enter}`) //Após ter os 6 dígitos, digitar e pressionar enter para confirmar
+
+      cy.wait('@getNotes') //esperar essa conexão acontecer pra depois ir adiante
+      cy.contains('h1', 'Your Notes').should('be.visible') //depois que a requisição acontecer procurar h1 - head 1 com o texto Your Notes visível
+    })
+  })
+})
+
+
+
+//comando de login anterior
+Cypress.Commands.add('login', (
+  username = Cypress.env('USER_EMAIL'), 
+  password = Cypress.env('USER_PASSWORD')
+) => {
+  cy.visit('/login')
+  cy.get('#email').type(username)
+  cy.get('#password').type(password, {log:false})
+  cy.contains('button', 'Login').click()
+  cy.contains('h1', 'Your Notes').should('be.visible')
+})
