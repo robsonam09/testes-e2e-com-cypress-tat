@@ -8,7 +8,11 @@ module.exports = defineConfig({
       viewportWidthBreakpoint: 768,
     },
     defaultCommandTimeout: 80000,
-    requestTimeout: 80000
+    requestTimeout: 80000,
+    setupNodeEvents(on, config) {
+      require('@cypress/grep/src/plugin')(config)
+      return config
+    },
   },
   projectId: 'mgr3wg',
 })
