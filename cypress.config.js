@@ -10,5 +10,5 @@ module.exports = defineConfig({
     defaultCommandTimeout: 80000,
     requestTimeout: 80000
   },
-  projectId: 'mgr3wg'
+  projectId: 'mgr3wg',
 })
