@@ -8,9 +8,7 @@ module.exports = defineConfig({
       viewportWidthBreakpoint: 768,
     },
     defaultCommandTimeout: 80000,
-    requestTimeout: 80000,
-    setupNodeEvents(on, config) {
-      // implement node event listeners here
-    },
+    requestTimeout: 80000
   },
+  projectId: 'mgr3wg'
 })
