@@ -57,3 +57,17 @@ describe('CRUD', () => {
     //Verifica que a nota atualizada e depois deletada não aparece mais na lista.
   })
 })
+
+
+
+
+  it('logs out', { tags: '@desktop-and-tablet' }, () => {
+    cy.visit('/')
+    cy.wait('@getNotes')
+
+    if (Cypress.config('viewportWidth') < Cypress.env('viewportWidthBreakpoint')) {
+      cy.get('.navbar-toggle.collapsed')
+        .should('be.visible')
+        .click()
+    }
+  })  
